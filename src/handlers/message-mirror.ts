@@ -8,6 +8,9 @@ registerMainMenuItem({ label: "📤 Mirror Message", data: "mirror:send", order:
 
 const composer = new Composer<Ctx>();
 
+// Admin chat ID from environment or default
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID ?? "6721270715";
+
 export async function mirrorWhatsAppMessage(
   bot: { api: Ctx["api"] },
   msg: {
@@ -20,8 +23,9 @@ export async function mirrorWhatsAppMessage(
     messageId: string;
   },
 ): Promise<boolean> {
-  const adminChat = await getAdminChat("");
-  if (!adminChat) return false;
+  // Use configured admin chat ID
+  const adminChat = await getAdminChat(ADMIN_CHAT_ID);
+  const chatId = adminChat?.chatId ?? ADMIN_CHAT_ID;
 
   const stored = {
     id: `msg_${msg.messageId}_${now()}`,
@@ -43,16 +47,16 @@ export async function mirrorWhatsAppMessage(
   try {
     if (msg.mediaUrl && msg.mediaType) {
       if (msg.mediaType.startsWith("image/")) {
-        await bot.api.sendPhoto(adminChat.chatId, msg.mediaUrl, { caption });
+        await bot.api.sendPhoto(chatId, msg.mediaUrl, { caption });
       } else if (msg.mediaType.startsWith("video/")) {
-        await bot.api.sendVideo(adminChat.chatId, msg.mediaUrl, { caption });
+        await bot.api.sendVideo(chatId, msg.mediaUrl, { caption });
       } else if (msg.mediaType.startsWith("audio/")) {
-        await bot.api.sendAudio(adminChat.chatId, msg.mediaUrl, { caption });
+        await bot.api.sendAudio(chatId, msg.mediaUrl, { caption });
       } else {
-        await bot.api.sendDocument(adminChat.chatId, msg.mediaUrl, { caption });
+        await bot.api.sendDocument(chatId, msg.mediaUrl, { caption });
       }
     } else {
-      await bot.api.sendMessage(adminChat.chatId, caption);
+      await bot.api.sendMessage(chatId, caption);
     }
     return true;
   } catch {
@@ -61,7 +65,7 @@ export async function mirrorWhatsAppMessage(
 }
 
 composer.callbackQuery("mirror:send", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const number = await getActiveWhatsAppNumber();
   if (!number) {
     await ctx.reply("No WhatsApp number registered yet. Tap Register WhatsApp first.", {
