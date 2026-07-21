@@ -1,0 +1,20 @@
+[
+  {
+    "name": "View Message History",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Access stored mirrored messages with filters by date/direction"
+            }
+          }
+        ],
+        "send": {
+          "callback": "history:view"
+        }
+      }
+    ]
+  }
+]
