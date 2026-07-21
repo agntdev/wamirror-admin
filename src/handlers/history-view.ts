@@ -14,9 +14,6 @@ async function showHistory(ctx: Ctx, page: number, filter?: "all" | "incoming" |
 
   const { messages, total } = await getMirroredMessages({ direction, limit: 5, offset: page * 5 });
 
-  const send = (text: string, markup: ReturnType<typeof inlineKeyboard>) =>
-    isNew ? ctx.reply(text, { reply_markup: markup }) : ctx.editMessageText(text, { reply_markup: markup });
-
   const filterKb = inlineKeyboard([
     [
       inlineButton(direction === "all" ? "📥 All ✓" : "📥 All", "history:filter:all"),
@@ -27,7 +24,16 @@ async function showHistory(ctx: Ctx, page: number, filter?: "all" | "incoming" |
   ]);
 
   if (total === 0) {
-    await send("No mirrored messages yet. Messages will appear here once WhatsApp forwarding is active.", filterKb);
+    const text = "No mirrored messages yet. Messages will appear here once WhatsApp forwarding is active.";
+    if (isNew) {
+      await ctx.reply(text, { reply_markup: filterKb });
+    } else {
+      try {
+        await ctx.editMessageText(text, { reply_markup: filterKb });
+      } catch {
+        // Message not modified - ignore
+      }
+    }
     return;
   }
 
@@ -56,22 +62,31 @@ async function showHistory(ctx: Ctx, page: number, filter?: "all" | "incoming" |
     [inlineButton("⬅️ Back to menu", "menu:main")],
   ]);
 
-  await send(header + body, kb);
+  const text = header + body;
+  if (isNew) {
+    await ctx.reply(text, { reply_markup: kb });
+  } else {
+    try {
+      await ctx.editMessageText(text, { reply_markup: kb });
+    } catch {
+      // Message not modified - ignore
+    }
+  }
 }
 
 composer.callbackQuery("history:view", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   await showHistory(ctx, 0, undefined, true);
 });
 
 composer.callbackQuery(/^history:filter:(.+)$/, async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const filter = ctx.match![1] as "all" | "incoming" | "outgoing";
   await showHistory(ctx, 0, filter);
 });
 
 composer.callbackQuery(/^history:page:(prev|next):(\d+)$/, async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const page = parseInt(ctx.match![2], 10);
   await showHistory(ctx, page);
 });

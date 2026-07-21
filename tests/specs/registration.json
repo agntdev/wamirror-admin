@@ -19,18 +19,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Got it. Now, what's the Telegram chat ID where mirrored messages should go? You can forward a message from the target chat to get its ID."
-            }
-          }
-        ]
-      },
-      {
-        "send": { "text": "-1001234567890" },
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Register this setup?\n\nWhatsApp: +1234567890\nAdmin chat: -1001234567890"
+              "text": "Got it. The admin chat is set to 6721270715. Is this correct?"
             }
           }
         ]

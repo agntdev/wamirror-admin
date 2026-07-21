@@ -8,7 +8,7 @@ registerMainMenuItem({ label: "📊 System Status", data: "status:show", order: 
 const composer = new Composer<Ctx>();
 
 composer.callbackQuery("status:show", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
 
   const policy = await getRetentionPolicy();
   const { total } = await getMirroredMessages();

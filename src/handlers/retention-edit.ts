@@ -8,7 +8,7 @@ registerMainMenuItem({ label: "⚙️ Configure Retention", data: "retention:edi
 const composer = new Composer<Ctx>();
 
 composer.callbackQuery("retention:edit", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const policy = await getRetentionPolicy();
   ctx.session.retentionDays = policy.days;
   await ctx.reply(
@@ -23,7 +23,7 @@ composer.callbackQuery("retention:edit", async (ctx) => {
 });
 
 composer.callbackQuery("retention:set", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   ctx.session.step = "awaiting_retention_days";
   await ctx.reply("How many days should media be retained? Enter a number between 1 and 365.", {
     reply_markup: { force_reply: true, input_field_placeholder: "Number of days (1–365)" },
@@ -49,7 +49,7 @@ composer.on("message:text", async (ctx, next) => {
 });
 
 composer.callbackQuery("retention:confirm", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   const days = ctx.session.retentionDays;
   if (!days) {
     await ctx.reply("Something went wrong. Tap Configure Retention to try again.");
@@ -59,18 +59,32 @@ composer.callbackQuery("retention:confirm", async (ctx) => {
 
   await setRetentionPolicy({ days, lastUpdated: Date.now() });
   ctx.session.step = undefined;
-  await ctx.editMessageText(`✅ Retention updated to ${days} days.`, {
-    reply_markup: inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]),
-  });
+  try {
+    await ctx.editMessageText(`✅ Retention updated to ${days} days.`, {
+      reply_markup: inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]),
+    });
+  } catch {
+    // Message not modified - send new message
+    await ctx.reply(`✅ Retention updated to ${days} days.`, {
+      reply_markup: inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]),
+    });
+  }
 });
 
 composer.callbackQuery("retention:cancel", async (ctx) => {
-  await ctx.answerCallbackQuery();
+  await ctx.answerCallbackQuery().catch(() => {});
   ctx.session.step = undefined;
   ctx.session.retentionDays = undefined;
-  await ctx.editMessageText("Retention change cancelled.", {
-    reply_markup: inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]),
-  });
+  try {
+    await ctx.editMessageText("Retention change cancelled.", {
+      reply_markup: inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]),
+    });
+  } catch {
+    // Message not modified - send new message
+    await ctx.reply("Retention change cancelled.", {
+      reply_markup: inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]),
+    });
+  }
 });
 
 export default composer;
