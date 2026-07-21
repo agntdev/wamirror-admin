@@ -1,19 +1,17 @@
 [
   {
-    "name": "View Message History",
+    "name": "View Message History shows empty state",
     "steps": [
       {
+        "send": { "callback": "history:view" },
         "expect": [
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Access stored mirrored messages with filters by date/direction"
+              "text": "No mirrored messages yet. Messages will appear here once WhatsApp forwarding is active."
             }
           }
-        ],
-        "send": {
-          "callback": "history:view"
-        }
+        ]
       }
     ]
   }

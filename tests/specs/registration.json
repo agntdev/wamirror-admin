@@ -1,0 +1,94 @@
+[
+  {
+    "name": "Registration flow starts and accepts phone number",
+    "steps": [
+      {
+        "send": { "callback": "register:start" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "What's the WhatsApp number to mirror? Include the country code (e.g. +1234567890)."
+            }
+          }
+        ]
+      },
+      {
+        "send": { "text": "+1234567890" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Got it. Now, what's the Telegram chat ID where mirrored messages should go? You can forward a message from the target chat to get its ID."
+            }
+          }
+        ]
+      },
+      {
+        "send": { "text": "-1001234567890" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Register this setup?\n\nWhatsApp: +1234567890\nAdmin chat: -1001234567890"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Registration rejects invalid phone number",
+    "steps": [
+      {
+        "send": { "callback": "register:start" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "What's the WhatsApp number to mirror? Include the country code (e.g. +1234567890)."
+            }
+          }
+        ]
+      },
+      {
+        "send": { "text": "abc" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "That doesn't look like a valid phone number. Try again with the country code (e.g. +1234567890)."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Registration cancel resets flow",
+    "steps": [
+      {
+        "send": { "callback": "register:start" },
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "What's the WhatsApp number to mirror? Include the country code (e.g. +1234567890)."
+            }
+          }
+        ]
+      },
+      {
+        "send": { "callback": "register:cancel" },
+        "expect": [
+          {
+            "method": "editMessageText",
+            "payload": {
+              "text": "Registration cancelled. Tap Register WhatsApp to start again."
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
